@@ -4,14 +4,18 @@
   var KEY = 'freshnest.v1';
 
   function blank() {
-    return { cart: {}, wish: [], orders: [], user: null, recent: [], searches: [], theme: 'auto', palette: 'ocean', reviews: {}, promo: null, area: null, addr: null };
+    return { cart: {}, wish: [], orders: [], user: null, recent: [], searches: [], theme: 'light', themeV: 2, lang: 'en', notesRead: [], palette: 'ocean', reviews: {}, promo: null, area: null, addr: null };
   }
 
   var s = blank();
   function load() {
     try {
-      var raw = localStorage.getItem(KEY);
-      s = Object.assign(blank(), raw ? JSON.parse(raw) : {});
+      var raw = localStorage.getItem(KEY), saved = raw ? JSON.parse(raw) : {};
+      s = Object.assign(blank(), saved);
+      /* Light is the default theme. Saves from before that held 'auto' (follow the device), so move them over once;
+         anything chosen afterwards (themeV 2) is kept, including 'auto'. */
+      if (saved.themeV !== 2 && saved.theme === 'auto') s.theme = 'light';
+      s.themeV = 2;
     } catch (e) { s = blank(); }
     // drop anything that no longer exists in the catalogue
     Object.keys(s.cart).forEach(function (id) { if (!D.byId[id]) delete s.cart[id]; });
@@ -117,10 +121,12 @@
     clearSearches: function () { s.searches = []; commit(); },
 
     setTheme: function (t) { s.theme = t; commit(); },
+    setLang: function (l) { s.lang = l; commit(); },
+    readNotes: function (ids) { s.notesRead = ids.slice(); commit(); },
     setPalette: function (p) { s.palette = p; commit(); },
     setArea: function (a) { s.area = a; commit(); },
     setUser: function (u) { s.user = u; commit(); },
-    saveAddress: function (a) { s.addr = a; commit(); },
+    saveAddress: function (a) { s.addr = a || null; commit(); },
 
     addReview: function (pid, r) {
       (s.reviews[pid] = s.reviews[pid] || []).unshift(r);

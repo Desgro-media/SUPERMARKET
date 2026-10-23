@@ -14,11 +14,16 @@
 
   /* ---------- search (shared with header suggestions) ---------- */
   function tokens(q) {
-    return String(q).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(function (t) { return t.length > 3 ? t.replace(/s$/, '') : t; });
+    return String(q).toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean).map(function (t) { return t.length > 3 ? t.replace(/s$/, '') : t; });
   }
   function score(p, toks) {
     var name = p.name.toLowerCase(), words = name.split(/\s+/), brand = p.brand.toLowerCase(),
       cat = D.catById[p.cat].name.toLowerCase(), blurb = p.blurb.toLowerCase(), total = 0;
+    /* in Bengali / Arabic, search the translated name, brand and category as well */
+    if (window.I18N && window.I18N.lang !== 'en') {
+      name += ' ' + window.I18N.t(p.name).toLowerCase(); words = name.split(/\s+/);
+      brand += ' ' + window.I18N.t(p.brand).toLowerCase(); cat += ' ' + window.I18N.t(D.catById[p.cat].name).toLowerCase();
+    }
     for (var i = 0; i < toks.length; i++) {
       var t = toks[i], s = 0;
       if (words.some(function (w) { return w.indexOf(t) === 0; })) s = 6;
@@ -41,16 +46,20 @@
   };
 
   /* ================= HOME ================= */
+  /* hero art = real product photos [product id, x, y, size, rotation] floating on the slide */
   var SLIDES = [
     { cls: 's1', eyebrow: 'Everything you need', title: 'One store for your whole home', text: 'Groceries, personal care, household and more — delivered in as little as 60 minutes.', cta: 'Start shopping', href: '#/shop',
-      art: [['🧴', '4%', '8%', 9, '-12deg'], ['🍎', '48%', '2%', 7.5, '14deg'], ['🪥', '20%', '48%', 8.5, '-26deg'], ['🧺', '62%', '46%', 7, '10deg']] },
+      art: [[6400, '4%', '8%', 9, '-12deg'], [6303, '48%', '2%', 7.5, '14deg'], [6402, '20%', '48%', 8.5, '-26deg'], [6320, '62%', '46%', 7, '10deg']] },
     { cls: 's2', eyebrow: 'Weekly deals', title: 'Up to 30% off your favourites', text: 'Save across groceries, grooming, home and more. New prices every week.', cta: 'See all deals', href: '#/shop?deal=1',
-      art: [['🛒', '6%', '14%', 10, '-8deg'], ['🪒', '52%', '4%', 7.5, '12deg'], ['🍫', '30%', '56%', 7, '-16deg'], ['🧴', '64%', '48%', 7.5, '8deg']] },
+      art: [[6302, '6%', '14%', 10, '-8deg'], [6381, '52%', '4%', 7.5, '12deg'], [6361, '30%', '56%', 7, '-16deg'], [6403, '64%', '48%', 7.5, '8deg']] },
     { cls: 's3', eyebrow: 'Grooming & care', title: 'Shaving sets, brushes & personal care', text: 'Razors, trimmers, toothbrushes and everyday essentials for the whole family.', cta: 'Shop health & beauty', href: '#/shop?dept=beauty',
-      art: [['🪒', '6%', '10%', 9.5, '-14deg'], ['🖌️', '50%', '6%', 8.5, '10deg'], ['🪥', '24%', '52%', 7, '-8deg'], ['🧼', '64%', '50%', 7, '14deg']] },
+      art: [[6412, '6%', '10%', 9.5, '-14deg'], [6413, '50%', '6%', 8.5, '10deg'], [6407, '24%', '52%', 7, '-8deg'], [6408, '64%', '50%', 7, '14deg']] },
     { cls: 's4', eyebrow: 'Home & kitchen', title: 'Everything for a spotless, well-run home', text: 'Cleaning brushes, cookware, storage and electricals at everyday low prices.', cta: 'Shop home & living', href: '#/shop?dept=home',
-      art: [['🧹', '6%', '12%', 9, '-10deg'], ['🍳', '50%', '4%', 8, '12deg'], ['💡', '22%', '52%', 7, '-6deg'], ['🧽', '64%', '50%', 7, '10deg']] }
+      art: [[6394, '6%', '12%', 9, '-10deg'], [6390, '50%', '4%', 8, '12deg'], [6388, '22%', '52%', 7, '-6deg'], [6391, '64%', '50%', 7, '10deg']] }
   ];
+
+  /* a product's full-size photo (emoji if it has none) for the promo artwork on the home page */
+  function photo(id, eager) { var p = D.byId[id]; return U.pic(p.imgs[0], p.emoji, eager); }
 
   function heroHtml() {
     return '<div class="hero" role="region" aria-roledescription="carousel" aria-label="Featured offers"><div class="hero-track">' +
@@ -59,7 +68,7 @@
           '<div class="hero-copy"><span class="eyebrow">' + s.eyebrow + '</span><h1>' + s.title + '</h1><p>' + s.text + '</p>' +
           '<a class="btn btn-light btn-lg" href="' + s.href + '">' + s.cta + ' ' + icon('arrow') + '</a></div>' +
           '<div class="hero-art" aria-hidden="true">' + s.art.map(function (a, k) {
-            return '<span style="--x:' + a[1] + ';--y:' + a[2] + ';--s:' + a[3] + ';--r:' + a[4] + ';--d:' + (k * 0.6) + 's">' + a[0] + '</span>';
+            return '<span style="--x:' + a[1] + ';--y:' + a[2] + ';--s:' + a[3] + ';--r:' + a[4] + ';--d:' + (k * 0.6) + 's">' + photo(a[0], i === 0) + '</span>';
           }).join('') + '</div></div>';
       }).join('') +
       '</div><button class="hero-arrow prev" aria-label="Previous slide">' + icon('left') + '</button><button class="hero-arrow next" aria-label="Next slide">' + icon('right') + '</button>' +
@@ -71,7 +80,7 @@
     var track = $('.hero-track', wrap), slides = $$('.hero-slide', wrap), dots = $$('.hero-dots button', wrap), i = 0, timer;
     function go(n) {
       i = (n + slides.length) % slides.length;
-      track.style.transform = 'translateX(-' + i * 100 + '%)';
+      track.style.transform = 'translateX(' + (document.documentElement.dir === 'rtl' ? '' : '-') + i * 100 + '%)';   // slides run right-to-left in Arabic
       dots.forEach(function (d, k) { d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
       slides.forEach(function (s, k) { s.inert = k !== i; s.setAttribute('aria-hidden', k !== i); });
     }
@@ -89,7 +98,9 @@
       x0 = null; play();
     });
     go(0); play();
-    cleanups.push(stop);
+    var relang = function () { go(i); };   // direction changes with the language
+    window.addEventListener('i18n', relang);
+    cleanups.push(stop, function () { window.removeEventListener('i18n', relang); });
   }
 
   function mountCountdown(root, cleanups) {
@@ -142,8 +153,8 @@
     var html = '<div class="container">' +
       '<section class="hero-wrap">' + heroHtml() +
         '<div class="promo-side">' +
-          '<a class="promo-card pc1" href="#/shop?dept=beauty"><div><span class="eyebrow">Care &amp; grooming</span><h3>Brushes, razors &amp; more</h3><span class="link-more">Shop now ' + icon('arrow') + '</span></div><span class="promo-emoji" aria-hidden="true">🪒</span></a>' +
-          '<a class="promo-card pc2" href="#/shop?dept=home"><div><span class="eyebrow">Spotless home</span><h3>Cleaning &amp; kitchen</h3><span class="link-more">Shop now ' + icon('arrow') + '</span></div><span class="promo-emoji" aria-hidden="true">🧹</span></a>' +
+          '<a class="promo-card pc1" href="#/shop?dept=beauty"><div><span class="eyebrow">Care &amp; grooming</span><h3>Brushes, razors &amp; more</h3><span class="link-more">Shop now ' + icon('arrow') + '</span></div><span class="promo-art" aria-hidden="true">' + photo(6412) + '</span></a>' +
+          '<a class="promo-card pc2" href="#/shop?dept=home"><div><span class="eyebrow">Spotless home</span><h3>Cleaning &amp; kitchen</h3><span class="link-more">Shop now ' + icon('arrow') + '</span></div><span class="promo-art" aria-hidden="true">' + photo(6394) + '</span></a>' +
         '</div></section>' +
 
       '<section class="trust" aria-label="Why shop with us">' +
@@ -153,7 +164,7 @@
 
       '<section class="section">' + head('Shop by category', 'Groceries, beauty, home and more — all in one place') +
         '<div class="cat-grid">' + D.CATEGORIES.map(function (c) {
-          return '<a class="cat-tile" href="#/shop?cat=' + c.id + '" style="--tint:' + c.tint + '"><span class="cat-ico" aria-hidden="true">' + c.emoji + '</span><b>' + esc(c.name) + '</b><small>' + c.count + ' items</small></a>';
+          return '<a class="cat-tile" href="#/shop?cat=' + c.id + '" style="--tint:' + c.tint + '"><span class="cat-ico" aria-hidden="true">' + U.pic(c.thumb, c.emoji) + '</span><b>' + esc(c.name) + '</b><small>' + c.count + ' items</small></a>';
         }).join('') + '</div></section>' +
 
       '<section class="section deals-band">' +
@@ -163,10 +174,10 @@
       '<section class="section">' + head('Popular right now', 'What your neighbours are adding to their baskets') +
         '<div class="tabs-pills" role="tablist" aria-label="Popular by department">' +
           '<button role="tab" aria-selected="true" data-tab="">All</button>' +
-          D.DEPTS.map(function (d) { return '<button role="tab" aria-selected="false" data-tab="' + d.id + '">' + d.emoji + ' ' + esc(d.name) + '</button>'; }).join('') +
+          D.DEPTS.map(function (d) { return '<button role="tab" aria-selected="false" data-tab="' + d.id + '">' + esc(d.name) + '</button>'; }).join('') +
         '</div><div class="pgrid" id="popular" role="tabpanel">' + popular('') + '</div></section>' +
 
-      '<section class="section"><a class="wide-promo" href="#/shop?dept=baby"><div><span class="eyebrow">Baby &amp; kids</span><h2>Everything for little ones</h2><p>Nappies, wipes, feeding essentials and toys — gentle, safe and delivered fast.</p><span class="btn btn-light">Shop baby &amp; kids ' + icon('arrow') + '</span></div><div class="wide-art" aria-hidden="true"><span>🍼</span><span>🧸</span><span>👶</span></div></a></section>' +
+      '<section class="section"><a class="wide-promo" href="#/shop?dept=baby"><div><span class="eyebrow">Baby &amp; kids</span><h2>Everything for little ones</h2><p>Nappies, wipes, feeding essentials and toys — gentle, safe and delivered fast.</p><span class="btn btn-light">Shop baby &amp; kids ' + icon('arrow') + '</span></div><div class="wide-art" aria-hidden="true"><span>' + photo(6451) + '</span><span>' + photo(6452) + '</span><span>' + photo(6450) + '</span></div></a></section>' +
 
       '<section class="section">' + head('New arrivals', 'Just landed on our shelves', more('#/shop?sort=new')) +
         '<div class="scroller">' + cards(fresh) + '</div></section>' +
@@ -287,7 +298,7 @@
     function deptListHtml() {
       return '<label class="opt"><input type="radio" name="dept" value=""><span>All departments</span><em>' + sum(deptCounts) + '</em></label>' +
         D.DEPTS.map(function (d) {
-          return '<label class="opt"><input type="radio" name="dept" value="' + d.id + '"><span>' + d.emoji + ' ' + esc(d.name) + '</span><em>' + (deptCounts[d.id] || 0) + '</em></label>';
+          return '<label class="opt"><input type="radio" name="dept" value="' + d.id + '"><span>' + esc(d.name) + '</span><em>' + (deptCounts[d.id] || 0) + '</em></label>';
         }).join('');
     }
     function catListHtml() {
@@ -295,7 +306,7 @@
       var total = cats.reduce(function (n, c) { return n + (catCounts[c.id] || 0); }, 0);
       return '<label class="opt"><input type="radio" name="cat" value=""><span>All categories</span><em>' + total + '</em></label>' +
         cats.map(function (c) {
-          return '<label class="opt"><input type="radio" name="cat" value="' + c.id + '"><span>' + c.emoji + ' ' + esc(c.name) + '</span><em>' + (catCounts[c.id] || 0) + '</em></label>';
+          return '<label class="opt"><input type="radio" name="cat" value="' + c.id + '"><span>' + esc(c.name) + '</span><em>' + (catCounts[c.id] || 0) + '</em></label>';
         }).join('');
     }
     countFacets();
@@ -506,16 +517,18 @@
     var sameBrand = D.PRODUCTS.filter(function (x) { return x.brand === p.brand && x.cat !== p.cat && x.id !== p.id; }).slice(0, 6);
     var recent = S.state.recent.filter(function (id) { return id !== p.id; }).map(function (id) { return D.byId[id]; }).filter(Boolean).slice(0, 8);
     var max = S.maxQty(p), rows = dist(p.rating);
-    var thumbs = [0, 1, 2].map(function (v) {
-      return '<button type="button" class="thumb' + (v === 0 ? ' on' : '') + '" data-v="' + v + '" aria-label="View image ' + (v + 1) + '" aria-pressed="' + (v === 0) + '">' + U.art(p, v) + '</button>';
+    /* one thumbnail per photo (none when there is a single photo); products still on emoji art get three artwork variants */
+    var views = p.imgs.length || 3;
+    var thumbs = views < 2 ? '' : Array.apply(null, Array(views)).map(function (_, v) {
+      return '<button type="button" class="thumb' + (v === 0 ? ' on' : '') + '" data-v="' + v + '" aria-label="View image ' + (v + 1) + '" aria-pressed="' + (v === 0) + '">' + U.art(p, v, '', true) + '</button>';
     }).join('');
 
     var html = '<div class="container pdp-page">' +
       '<nav class="crumbs" aria-label="Breadcrumb"><a href="#/">Home</a>' + icon('right') + '<a href="#/shop?dept=' + dept.id + '">' + esc(dept.name) + '</a>' + icon('right') + '<a href="#/shop?cat=' + cat.id + '">' + esc(cat.name) + '</a>' + icon('right') + '<span aria-current="page">' + esc(p.name) + '</span></nav>' +
       '<div class="pdp">' +
-        '<div class="gallery"><div class="thumbs">' + thumbs + '</div><div class="main-art" id="main-art">' + U.art(p, 0, p.name) + '</div></div>' +
+        '<div class="gallery' + (thumbs ? '' : ' single') + '">' + (thumbs ? '<div class="thumbs">' + thumbs + '</div>' : '') + '<div class="main-art" id="main-art">' + U.art(p, 0, p.name) + '</div></div>' +
         '<div class="pdp-info">' +
-          '<a class="pill" href="#/shop?cat=' + cat.id + '">' + cat.emoji + ' ' + esc(cat.name) + '</a>' +
+          '<a class="pill" href="#/shop?cat=' + cat.id + '">' + esc(cat.name) + '</a>' +
           '<h1>' + esc(p.name) + '</h1>' +
           '<div class="meta"><a href="#/shop?brand=' + encodeURIComponent(p.brand) + '">' + esc(p.brand) + '</a><i></i>' + U.stars(p.rating) + '<b>' + p.rating.toFixed(1) + '</b><a href="#reviews" data-goto="reviews">' + p.reviews + ' reviews</a><i></i><span>SKU ' + p.id + '</span></div>' +
           '<p class="blurb">' + esc(p.blurb) + '</p>' +

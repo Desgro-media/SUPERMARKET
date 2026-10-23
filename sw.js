@@ -1,11 +1,12 @@
 /* NestMart service worker: makes the app installable and usable offline.
    Strategy: network-first for the app's own files (always fresh when online, so edits show up),
-   falling back to the cache when offline. Fonts are cache-first. Bump CACHE to force a clean slate. */
-var CACHE = 'nestmart-v3';
+   falling back to the cache when offline (product photos are cached as they are viewed). Fonts are cache-first.
+   Bump CACHE to force a clean slate. */
+var CACHE = 'nestmart-v5';
 var CORE = [
   './', 'index.html', 'manifest.json', 'css/styles.css',
-  'js/config.js', 'js/data.js', 'js/store.js', 'js/ui.js', 'js/views-shop.js', 'js/views-cart.js', 'js/app.js', 'js/pwa.js',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
+  'js/config.js', 'js/data.js', 'js/store.js', 'js/lang.js', 'js/lang-data.js', 'js/i18n.js', 'js/ui.js', 'js/views-shop.js', 'js/views-cart.js', 'js/views-info.js', 'js/app.js', 'js/pwa.js',
+  'icons/logo-160.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', function (e) {

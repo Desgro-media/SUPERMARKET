@@ -7,11 +7,16 @@
 
   /* ================= chrome ================= */
   function buildChrome() {
-    $('#announce').innerHTML = '<div class="container"><span>' + icon('truck') + ' Free delivery over ' + U.moneyText(C.freeDeliveryAt) + '</span><span class="sep" aria-hidden="true">•</span><span>Use code <b>SAVE10</b> for 10% off</span><span class="sep hide-sm" aria-hidden="true">•</span><span class="hide-sm">' + icon('clock') + ' Open ' + esc(C.contact.hours) + '</span></div>';
+    $('#announce').innerHTML = '<div class="container"><div class="ann-msgs"><span>' + icon('truck') + ' Free delivery over ' + U.moneyText(C.freeDeliveryAt) + '</span><span class="sep" aria-hidden="true">•</span><span>Use code <b>SAVE10</b> for 10% off</span><span class="sep hide-sm" aria-hidden="true">•</span><span class="hide-sm">' + icon('clock') + ' Open ' + esc(C.contact.hours) + '</span></div>' +
+      '<div class="top-ctl"><button type="button" class="dm" id="dm-switch" role="switch" aria-checked="false" data-action="theme"><span>Dark Mode</span><i class="sw" aria-hidden="true"></i></button>' +
+        '<div class="lang" id="lang"><button type="button" class="lang-btn" id="lang-btn" data-action="lang-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="lang-menu" aria-label="Language" translate="no"><span id="lang-cur">EN</span>' + icon('down') + '</button>' +
+        '<ul class="lang-menu" id="lang-menu" role="listbox" aria-label="Language" translate="no" hidden>' + window.I18N.langs.map(function (l) {
+          return '<li role="presentation"><button type="button" role="option" data-action="lang-set" data-lang="' + l.id + '" aria-selected="false" lang="' + l.id + '"><span class="flag">' + l.flag + '</span><span>' + l.name + '</span></button></li>';
+        }).join('') + '</ul></div></div></div>';
 
     $('#header').innerHTML =
       '<div class="hdr-main container">' +
-        '<a class="logo" href="#/" aria-label="' + esc(C.name) + ' home"><span class="logo-mark">' + icon('bag') + '</span><span class="logo-text">' + esc(C.name) + '</span></a>' +
+        '<a class="logo" href="#/" aria-label="' + esc(C.name) + ' home"><span class="logo-mark"><img src="icons/logo-160.png" alt="" width="40" height="40"></span><span class="logo-text">' + esc(C.name) + '</span></a>' +
         '<button type="button" class="loc-btn" data-action="open-area" aria-label="Delivery city, change"><span class="loc-ico">' + icon('pin') + '</span><span class="loc-text"><small>Deliver to</small><b id="loc-label"></b></span>' + icon('down') + '</button>' +
         '<div class="search" id="search"><form id="search-form" role="search" autocomplete="off">' + icon('search') +
           '<input id="q" type="search" name="q" placeholder="Search products, brands…" aria-label="Search products" role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list" enterkeyhint="search" spellcheck="false">' +
@@ -19,18 +24,14 @@
           '<div class="suggest" id="suggest" role="listbox" aria-label="Search suggestions" hidden></div></div>' +
         '<div class="hdr-actions">' +
           '<button type="button" class="install-btn" id="install-btn" data-action="install" aria-label="Install ' + esc(C.name) + ' app" title="Install the app">' + icon('download') + '<span>Install app</span></button>' +
-          '<button type="button" class="icon-btn" id="theme-btn" data-action="theme" aria-label="Switch to dark mode"></button>' +
           '<a class="icon-btn" href="#/wishlist" aria-label="Wishlist">' + icon('heart') + '<span class="count" id="wish-count" hidden>0</span></a>' +
           '<a class="icon-btn acct" id="acct-btn" href="#/account" aria-label="Account">' + icon('user') + '</a>' +
           '<button type="button" class="cart-btn" id="cart-btn" data-action="open-cart" aria-label="Open cart"><span class="cart-ico">' + icon('cart') + '<span class="count" id="cart-count">0</span></span><span class="cart-total"><small>My cart</small><b class="num" id="cart-total"></b></span></button>' +
         '</div></div>' +
       '<div class="cat-nav"><div class="container">' +
         '<div class="mega-wrap"><button type="button" class="all-cats" id="mega-btn" data-action="mega" aria-expanded="false" aria-controls="mega">' + icon('menu') + ' All categories ' + icon('down') + '</button>' +
-          '<div class="mega" id="mega" hidden>' + D.DEPTS.map(function (d) {
-            return '<div class="mega-col"><a class="mega-head" href="#/shop?dept=' + d.id + '"><span aria-hidden="true">' + d.emoji + '</span>' + esc(d.name) + '</a>' +
-              D.CATEGORIES.filter(function (c) { return c.dept === d.id; }).map(function (c) {
-                return '<a href="#/shop?cat=' + c.id + '" class="mega-item"><span class="mi" style="--tint:' + c.tint + '" aria-hidden="true">' + c.emoji + '</span><span><b>' + esc(c.name) + '</b><small>' + c.count + ' items</small></span></a>';
-              }).join('') + '</div>';
+          '<div class="mega" id="mega" hidden>' + D.CATEGORIES.map(function (c) {
+            return '<a href="#/shop?cat=' + c.id + '" class="mega-item"><span class="mi" style="--tint:' + c.tint + '" aria-hidden="true">' + U.pic(c.thumb, c.emoji) + '</span><span><b>' + esc(c.name) + '</b><small>' + c.count + ' items</small></span></a>';
           }).join('') + '</div></div>' +
         '<nav class="nav-scroll" aria-label="Departments"><a class="nav-link deals" data-key="deals" href="#/shop?deal=1">🔥 Deals</a>' +
           D.DEPTS.map(function (d) { return '<a class="nav-link" data-key="' + d.id + '" href="#/shop?dept=' + d.id + '">' + esc(d.name) + '</a>'; }).join('') +
@@ -45,11 +46,12 @@
 
     $('#footer').innerHTML =
       '<div class="container foot-grid">' +
-        '<div class="foot-brand"><a class="logo" href="#/"><span class="logo-mark">' + icon('bag') + '</span><span class="logo-text">' + esc(C.name) + '</span></a><p>' + esc(C.tagline) + '. Groceries, home essentials and personal care — everything in one place, delivered fast.</p></div>' +
+        '<div class="foot-brand"><a class="logo" href="#/"><span class="logo-mark"><img src="icons/logo-160.png" alt="" width="40" height="40"></span><span class="logo-text">' + esc(C.name) + '</span></a><p>' + esc(C.tagline) + '. Groceries, home essentials and personal care — everything in one place, delivered fast.</p></div>' +
         '<div><h3>Shop</h3><ul>' + D.DEPTS.map(function (d) { return '<li><a href="#/shop?dept=' + d.id + '">' + esc(d.name) + '</a></li>'; }).join('') + '<li><a href="#/shop?deal=1">Deals &amp; offers</a></li><li><a href="#/shop?sort=new">New arrivals</a></li></ul></div>' +
-        '<div><h3>My account</h3><ul><li><a href="#/account">Account</a></li><li><a href="#/orders">My orders</a></li><li><a href="#/wishlist">Wishlist</a></li><li><a href="#/cart">Cart</a></li></ul></div>' +
+        '<div><h3>My account</h3><ul><li><a href="#/account">Account</a></li><li><a href="#/orders">My orders</a></li><li><a href="#/track">Track order</a></li><li><a href="#/wishlist">Wishlist</a></li><li><a href="#/cart">Cart</a></li></ul></div>' +
+        '<div><h3>Help &amp; info</h3><ul><li><a href="#/support">Customer Support</a></li><li><a href="#/contact">Contact Us</a></li><li><a href="#/coupons">Coupon</a></li><li><a href="#/about">About Us</a></li><li><a href="#/privacy">Privacy Policy</a></li><li><a href="#/terms">Terms &amp; Conditions</a></li></ul></div>' +
         '<div><h3>Contact</h3><ul class="contact"><li>' + icon('phone') + ' ' + esc(C.contact.phone) + '</li><li>' + icon('mail') + ' ' + esc(C.contact.email) + '</li><li>' + icon('clock') + ' ' + esc(C.contact.hours) + '</li></ul></div>' +
-      '</div><div class="foot-bar"><div class="container"><span>© ' + new Date().getFullYear() + ' ' + esc(C.name) + '. Demo store — products, prices and contact details are placeholders.</span><span>Prices include VAT</span></div></div>';
+      '</div><div class="foot-bar"><div class="container"><span>© ' + new Date().getFullYear() + ' ' + esc(C.name) + '. Demo store — products, prices and contact details are placeholders.</span><span>Prices include VAT · <a href="credits.html">Photo credits</a></span></div></div>';
 
     $('#bottom-nav').innerHTML =
       '<a href="#/" data-nav="home">' + icon('home') + '<span>Home</span></a>' +
@@ -69,8 +71,8 @@
     if (pal === 'ocean') root.removeAttribute('data-palette'); else root.dataset.palette = pal;
     var m = $('meta[name=theme-color]');
     if (m) { var cs = getComputedStyle(root); m.content = (r === 'dark' ? cs.getPropertyValue('--bg') : cs.getPropertyValue('--brand')).trim() || '#1d4ed8'; }
-    var b = $('#theme-btn');
-    if (b) { b.innerHTML = icon(r === 'dark' ? 'sun' : 'moon'); b.setAttribute('aria-label', r === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'); }
+    var b = $('#dm-switch');
+    if (b) b.setAttribute('aria-checked', r === 'dark');
   }
   dark.addEventListener && dark.addEventListener('change', applyTheme);
 
@@ -147,12 +149,12 @@
         }).join('') + '</div>';
     }
     var prods = V.search(q, 6), ql = q.toLowerCase();
-    var cats = D.CATEGORIES.filter(function (c) { return c.name.toLowerCase().indexOf(ql) > -1; }).slice(0, 2);
+    var cats = D.CATEGORIES.filter(function (c) { return (c.name + ' ' + window.I18N.t(c.name)).toLowerCase().indexOf(ql) > -1; }).slice(0, 2);
     if (!prods.length && !cats.length) return '<div class="sg-empty"><b>No matches for “' + esc(q) + '”</b><span>Check the spelling or try a broader word like “milk” or “bread”.</span></div>';
     return cats.map(function (c) {
-      return item('#/shop?cat=' + c.id, '<span class="sg-ico cat" style="--tint:' + c.tint + '">' + c.emoji + '</span><span class="sg-main"><span class="sg-name">' + hl(c.name, q) + '</span><small>Category</small></span>');
+      return item('#/shop?cat=' + c.id, '<span class="sg-ico cat" style="--tint:' + c.tint + '">' + U.pic(c.thumb, c.emoji) + '</span><span class="sg-main"><span class="sg-name">' + hl(window.I18N.t(c.name), q) + '</span><small>Category</small></span>');
     }).join('') + prods.map(function (p) {
-      return item('#/product/' + p.id, '<span class="sg-ico" style="--tint:' + D.catById[p.cat].tint + '">' + p.emoji + '</span><span class="sg-main"><span class="sg-name">' + hl(p.name, q) + '</span><small>' + esc(p.brand) + ' · ' + esc(p.unit) + '</small></span><span class="sg-price num">' + money(p.price) + '</span>');
+      return item('#/product/' + p.id, '<span class="sg-ico" style="--tint:' + D.catById[p.cat].tint + '">' + U.pic(p.thumbs[0], p.emoji) + '</span><span class="sg-main"><span class="sg-name">' + hl(window.I18N.t(p.name), q) + '</span><small>' + esc(p.brand) + ' · ' + esc(p.unit) + '</small></span><span class="sg-price num">' + money(p.price) + '</span>');
     }).join('') +
       item('#/shop?q=' + encodeURIComponent(q), '<span class="sg-ico">' + icon('search') + '</span><span class="sg-main">See all results for “' + esc(q) + '”</span>' + icon('arrow'));
   }
@@ -198,7 +200,17 @@
     var m = $('#mega'); if (!m || m.hidden) return;
     m.hidden = true; $('#mega-btn').setAttribute('aria-expanded', 'false');
   }
-  function closeTransient() { closeMega(); closeSuggest(); }
+  function closeLang() {
+    var m = $('#lang-menu'); if (!m || m.hidden) return;
+    m.hidden = true; $('#lang-btn').setAttribute('aria-expanded', 'false');
+  }
+  function toggleLang() {
+    var m = $('#lang-menu'), open = m.hidden;
+    closeMega(); closeSuggest();
+    m.hidden = !open; $('#lang-btn').setAttribute('aria-expanded', open);
+    if (open) { var cur = $('[aria-selected="true"]', m) || $('button', m); if (cur) cur.focus(); }
+  }
+  function closeTransient() { closeMega(); closeSuggest(); closeLang(); }
 
   function openAreaModal() {
     var cur = S.state.area || C.areas[0];
@@ -217,8 +229,8 @@
       '<div class="modal-body"><h2>Shop by category</h2>' +
       '<div class="sheet-cats"><a href="#/shop?deal=1" class="sheet-cat" style="--tint:#ffe1c9"><span>🔥</span><b>Deals</b></a><a href="#/shop?sort=new" class="sheet-cat" style="--tint:#fff0b8"><span>✨</span><b>New arrivals</b></a></div>' +
       D.DEPTS.map(function (d) {
-        return '<section class="sheet-dept"><h3><span>' + d.emoji + ' ' + esc(d.name) + '</span><a href="#/shop?dept=' + d.id + '">See all</a></h3><div class="sheet-cats">' +
-          D.CATEGORIES.filter(function (c) { return c.dept === d.id; }).map(function (c) { return '<a href="#/shop?cat=' + c.id + '" class="sheet-cat" style="--tint:' + c.tint + '"><span>' + c.emoji + '</span><b>' + esc(c.name) + '</b></a>'; }).join('') +
+        return '<section class="sheet-dept"><h3><span>' + esc(d.name) + '</span><a href="#/shop?dept=' + d.id + '">See all</a></h3><div class="sheet-cats">' +
+          D.CATEGORIES.filter(function (c) { return c.dept === d.id; }).map(function (c) { return '<a href="#/shop?cat=' + c.id + '" class="sheet-cat" style="--tint:' + c.tint + '"><span class="sc-photo">' + U.pic(c.thumb, c.emoji) + '</span><b>' + esc(c.name) + '</b></a>'; }).join('') +
         '</div></section>';
       }).join('') + '</div>');
   }
@@ -273,6 +285,8 @@
       case 'open-cart': openCart(); break;
       case 'close-cart': closeCart(); break;
       case 'theme': S.setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'); break;
+      case 'lang-toggle': toggleLang(); break;
+      case 'lang-set': window.I18N.choose(t.dataset.lang); closeLang(); $('#lang-btn').focus(); break;
       case 'login': V.openAuth(function () { if (location.hash === '#/account') route(); }); break;
       case 'logout': S.setUser(null); U.toast('Signed out'); if (location.hash === '#/account') route(); break;
       case 'open-area': openAreaModal(); break;
@@ -288,12 +302,13 @@
     }
   });
   // close the mega menu on any outside click
-  document.addEventListener('click', function (e) { if (!e.target.closest('.mega-wrap')) closeMega(); });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.mega-wrap')) closeMega(); if (!e.target.closest('#lang')) closeLang(); });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       if (U.modalOpen()) U.closeModal();
       else if (drawer.classList.contains('open')) closeCart();
+      else if (!$('#lang-menu').hidden) { closeLang(); $('#lang-btn').focus(); }
       else if (!$('#mega').hidden) { closeMega(); $('#mega-btn').focus(); }
       else if (!sg.hidden) closeSuggest();
       return;
@@ -331,6 +346,16 @@
         case 'orders': view = V.orders(); break;
         case 'wishlist': view = V.wishlist(); break;
         case 'account': view = V.account(); break;
+        case 'track': view = V.track(seg[1]); break;
+        case 'profile': view = V.profile(); break;
+        case 'address': view = V.address(); break;
+        case 'support': view = V.support(); break;
+        case 'coupons': view = V.coupons(); break;
+        case 'notifications': view = V.notifications(); break;
+        case 'contact': view = V.contact(); break;
+        case 'privacy': view = V.privacy(); break;
+        case 'terms': view = V.terms(); break;
+        case 'about': view = V.about(); break;
         default: view = V.notFound();
       }
       current = view;
@@ -356,12 +381,13 @@
   function markActive(first, params) {
     var cat = params.get('cat'), key = first === 'shop' ? (params.get('deal') === '1' ? 'deals' : params.get('sort') === 'new' && !cat && !params.get('dept') ? 'new' : params.get('dept') || (cat && D.catById[cat] ? D.catById[cat].dept : '')) : null;
     $$('.nav-link').forEach(function (a) { var on = key && a.dataset.key === key; a.classList.toggle('active', !!on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    var navKey = { undefined: 'home', cart: 'cart', checkout: 'cart', account: 'account', orders: 'account' }[first];
+    var navKey = { undefined: 'home', cart: 'cart', checkout: 'cart', account: 'account', orders: 'account', track: 'account', profile: 'account', address: 'account', support: 'account', coupons: 'account', notifications: 'account', contact: 'account', privacy: 'account', terms: 'account', about: 'account' }[first];
     $$('#bottom-nav [data-nav]').forEach(function (a) { a.classList.toggle('on', a.dataset.nav === navKey); });
   }
 
   /* ================= boot ================= */
   buildChrome();
+  window.I18N.syncControls();
   applyTheme();
   updateHeader();
   wireSearch();

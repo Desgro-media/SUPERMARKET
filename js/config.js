@@ -28,6 +28,7 @@ window.CONFIG = {
   contact: {
     email: 'hello@nestmart.example',
     phone: '+966 00 000 0000',
-    hours: '7am – 11pm, every day'
+    hours: '7am – 11pm, every day',
+    address: 'Riyadh, Saudi Arabia'
   }
 };

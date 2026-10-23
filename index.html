@@ -9,7 +9,6 @@
 
   <!-- installable web app (PWA) -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="application-name" content="NestMart">
@@ -20,14 +19,18 @@
   <meta name="format-detection" content="telephone=no">
 
   <script>
-    /* Apply the saved light/dark theme and colour palette before first paint to avoid a flash. */
+    /* Apply the saved light/dark theme and colour palette before first paint to avoid a flash.
+       Light is the default; 'auto' (follow the device) only counts once chosen (themeV 2, see js/store.js). */
     (function () {
       try {
-        var s = JSON.parse(localStorage.getItem('freshnest.v1') || '{}'), t = s.theme || 'auto';
+        var s = JSON.parse(localStorage.getItem('freshnest.v1') || '{}'), t = s.theme || 'light';
+        if (t === 'auto' && s.themeV !== 2) t = 'light';
         var d = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.dataset.theme = d ? 'dark' : 'light';
         if (s.palette && s.palette !== 'ocean') document.documentElement.dataset.palette = s.palette;
-      } catch (e) { /* default light + ocean */ }
+        var l = new URLSearchParams(location.search).get('lang') || s.lang;   // English / Bengali / Arabic (js/i18n.js)
+        if (l === 'bn' || l === 'ar') { document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr'; }
+      } catch (e) { /* default light + ocean + English */ }
     })();
     /* Catch the browser's install offer early; js/pwa.js uses it for the "Install app" button. */
     window.addEventListener('beforeinstallprompt', function (e) {
@@ -38,7 +41,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -59,9 +62,13 @@
   <script src="js/config.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/lang.js"></script>
+  <script src="js/lang-data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/views-shop.js"></script>
   <script src="js/views-cart.js"></script>
+  <script src="js/views-info.js"></script>
   <script src="js/app.js"></script>
   <script src="js/pwa.js"></script>
 </body>

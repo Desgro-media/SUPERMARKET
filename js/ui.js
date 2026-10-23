@@ -49,10 +49,24 @@
     logout: '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>',
     up: '<path d="m6 15 6-6 6 6"/>',
-    download: '<path d="M12 4v11M7.5 11 12 15.5 16.5 11M5 20h14"/>'
+    download: '<path d="M12 4v11M7.5 11 12 15.5 16.5 11M5 20h14"/>',
+    orders: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+    track: '<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/>',
+    profile: '<circle cx="9" cy="8" r="4"/><path d="M2.5 21c0-3.8 2.9-6.5 6.5-6.5M15 20.5l.6-3.2 5-5 2.6 2.6-5 5z"/>',
+    address: '<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><circle cx="12" cy="14.5" r="2.2"/>',
+    headset: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/><path d="M19 20c0 1.6-2 2-5 2"/>',
+    ticket: '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5z"/><path d="M14 5v14" stroke-dasharray="2 2.6"/>',
+    bell: '<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+    policy: '<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="M9 11h6M9 14.5h4"/>',
+    terms: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+    login: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8M13 8l4 4-4 4"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>'
   };
+  var FLIP = { right: 1, left: 1, arrow: 1, logout: 1, login: 1 };   // arrows that point along the reading direction: mirrored in right-to-left languages
   function icon(name, cls) {
-    return '<svg class="ico ' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
+    return '<svg class="ico ' + (cls || '') + (FLIP[name] ? ' flip' : '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[name] + '</svg>';
   }
 
   /* ---------- formatting ---------- */
@@ -70,16 +84,39 @@
     return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  /* ---------- product art ---------- */
-  function art(p, variant, label) {
-    var cat = D.catById[p.cat];
-    var attrs = 'class="art" style="--tint:' + cat.tint + '" data-v="' + (variant || 0) + '"' + (label ? ' role="img" aria-label="' + esc(label) + '"' : ' aria-hidden="true"');
-    if (p.img) return '<div ' + attrs + '><img src="' + esc(p.img) + '" alt="" loading="lazy"></div>';
+  /* ---------- product art ----------
+     Products with photos (see IMAGES in js/data.js) show the photo; anything without one falls back to emoji on a tinted tile.
+     Every photo also has a small copy in images/products/t/ (p.thumbs) so tiny icons don't download full-size files. */
+
+  /* an <img> for a small icon slot (search results, order lines, category tiles…), or the emoji when there is no photo */
+  function pic(src, emoji, eager) {
+    return src ? '<img src="' + esc(src) + '" alt="" ' + (eager ? '' : 'loading="lazy" ') + 'decoding="async" data-emoji="' + esc(emoji) + '">' : emoji;
+  }
+  /* same, for a product id that may no longer be in the catalogue (old orders): use the stored emoji then */
+  function itemPic(id, emoji) {
+    var p = D.byId[id];
+    return pic(p && p.thumbs[0], (p && p.emoji) || emoji || '🛒');
+  }
+
+  /* variant picks the n-th photo (product page gallery); small = use the thumbnail copy */
+  function art(p, variant, label, small) {
+    var cat = D.catById[p.cat], src = p.imgs.length ? (p.imgs[variant] ? (small ? p.thumbs[variant] : p.imgs[variant]) : (small ? p.thumbs[0] : p.imgs[0])) : '';
+    var attrs = 'class="art' + (src ? ' photo' : '') + '" style="--tint:' + cat.tint + '" data-v="' + (variant || 0) + '"' + (label ? ' role="img" aria-label="' + esc(label) + '"' : ' aria-hidden="true"');
+    if (src) return '<div ' + attrs + '><img src="' + esc(src) + '" alt="" loading="lazy" decoding="async" data-emoji="' + esc(p.emoji) + '"></div>';
     var inner = '<span class="emoji">' + p.emoji + '</span>';
     if (variant === 1) inner = '<span class="emoji e1">' + p.emoji + '</span><span class="emoji e2">' + p.emoji + '</span><span class="emoji e3">' + p.emoji + '</span>';
     if (variant === 2) inner += '<span class="art-tag">' + esc(p.brand) + '</span>';
     return '<div ' + attrs + '>' + inner + '</div>';
   }
+
+  /* a photo that fails to load (offline and not cached yet, or a missing file) falls back to the product's emoji */
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (!img || img.tagName !== 'IMG' || !img.dataset.emoji) return;
+    var host = img.parentNode;
+    if (host.classList.contains('art')) { host.classList.remove('photo'); host.innerHTML = '<span class="emoji">' + esc(img.dataset.emoji) + '</span>'; }
+    else img.replaceWith(document.createTextNode(img.dataset.emoji));
+  }, true);
 
   /* ---------- add-to-cart control (re-rendered in place by syncControls) ---------- */
   function ctl(p) {
@@ -214,7 +251,7 @@
 
   window.UI = {
     $: $, $$: $$, esc: esc, icon: icon, money: money, moneyText: moneyText, nf: nf, stars: stars, ago: ago,
-    art: art, ctl: ctl, card: card, syncControls: syncControls, keepFocus: keepFocus, toast: toast,
+    art: art, pic: pic, itemPic: itemPic, ctl: ctl, card: card, syncControls: syncControls, keepFocus: keepFocus, toast: toast,
     openModal: openModal, closeModal: closeModal, modalOpen: modalOpen
   };
 })();

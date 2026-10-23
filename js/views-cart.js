@@ -6,7 +6,7 @@
   /* ---------- shared bits (also used by the cart drawer) ---------- */
   function cartLine(l) {
     var p = l.p;
-    return '<li class="cart-line"><a class="cl-art" href="#/product/' + p.id + '" tabindex="-1" aria-hidden="true">' + U.art(p) + '</a>' +
+    return '<li class="cart-line"><a class="cl-art" href="#/product/' + p.id + '" tabindex="-1" aria-hidden="true">' + U.art(p, 0, '', true) + '</a>' +
       '<div class="cl-body"><a class="cl-name" href="#/product/' + p.id + '">' + esc(p.name) + '</a>' +
       '<small>' + esc(p.unit) + ' · ' + money(p.price) + ' each</small>' + U.ctl(p) + '</div>' +
       '<div class="cl-end"><b class="num">' + money(l.total) + '</b><button type="button" class="icon-btn sm" data-action="remove" data-id="' + p.id + '" aria-label="Remove ' + esc(p.name) + ' from cart">' + icon('trash') + '</button></div></li>';
@@ -14,7 +14,7 @@
   function shipMeter(t) {
     if (!t.count) return '';
     if (t.freeShip || t.toFree <= 0) return '<div class="meter ok"><p>' + icon('truck') + ' <b>You\'ve unlocked free delivery!</b></p><div class="bar"><i style="width:100%"></i></div></div>';
-    return '<div class="meter"><p>' + icon('truck') + ' Add <b>' + U.moneyText(t.toFree) + '</b> more for <b>free delivery</b></p><div class="bar"><i style="width:' + Math.min(100, Math.round(t.subtotal / C.freeDeliveryAt * 100)) + '%"></i></div></div>';
+    return '<div class="meter"><p>' + icon('truck') + ' Spend <b>' + U.moneyText(t.toFree) + '</b> more for <b>free delivery</b></p><div class="bar"><i style="width:' + Math.min(100, Math.round(t.subtotal / C.freeDeliveryAt * 100)) + '%"></i></div></div>';
   }
   function rows(t) {
     var r = '<div class="row"><span>Subtotal (' + t.count + ' item' + (t.count === 1 ? '' : 's') + ')</span><b class="num">' + money(t.subtotal) + '</b></div>';
@@ -101,7 +101,7 @@
         field('name', 'Full name', { req: 1, ac: 'name' }) + field('phone', 'Mobile number', { req: 1, ac: 'tel', type: 'tel', mode: 'tel' }) +
         field('email', 'Email (for your receipt)', { type: 'email', ac: 'email', cls: 'span2' }) + '</div></section>' +
       '<section class="step"><h2><span class="n">2</span> Delivery address</h2><div class="grid2">' +
-        '<div class="field"><label for="area">City <i aria-hidden="true">*</i></label><select id="area" name="area" required>' + C.areas.map(function (x) { return '<option>' + x + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label for="area">City <i aria-hidden="true">*</i></label><select id="area" name="area" required>' + C.areas.map(function (x) { return '<option value="' + x + '">' + x + '</option>'; }).join('') + '</select></div>' +
         field('street', 'Street / neighbourhood', { req: 1, ac: 'address-line1' }) +
         field('building', 'Building, floor &amp; flat', { req: 1, ac: 'address-line2' }) +
         field('landmark', 'Nearest landmark (optional)') + '</div></section>' +
@@ -117,7 +117,7 @@
         '<p class="hint">Online card payment isn\'t part of this demo, so no card details are collected.</p></section>' +
       '<section class="step"><h2><span class="n">5</span> Notes <small>(optional)</small></h2><div class="field"><label class="sr" for="notes">Order notes</label><textarea id="notes" name="notes" rows="3" maxlength="300" placeholder="Substitution preferences, gate code, ring the bell…"></textarea></div></section>' +
       '</form><aside class="summary sticky" aria-label="Order summary"><h2>Order summary</h2><ul class="mini-lines">' +
-        t0.items.map(function (l) { return '<li><span class="mini-art" aria-hidden="true">' + l.p.emoji + '</span><span class="mini-name">' + esc(l.p.name) + '<small>' + l.qty + ' × ' + esc(l.p.unit) + '</small></span><b class="num">' + money(l.total) + '</b></li>'; }).join('') + '</ul>' +
+        t0.items.map(function (l) { return '<li><span class="mini-art" aria-hidden="true">' + U.pic(l.p.thumbs[0], l.p.emoji) + '</span><span class="mini-name">' + esc(l.p.name) + '<small>' + l.qty + ' × ' + esc(l.p.unit) + '</small></span><b class="num">' + money(l.total) + '</b></li>'; }).join('') + '</ul>' +
         '<div class="rows" id="co-rows"></div><p class="form-err" id="co-err" role="alert" hidden></p>' +
         '<button class="btn btn-primary btn-lg btn-block" type="submit" form="co" id="place">Place order</button>' +
         '<p class="fine">By placing your order you agree to our terms. Prices include VAT.</p></aside></div></div>';
@@ -208,7 +208,7 @@
   function orderBody(o) {
     var t = o.totals;
     return '<div class="od-grid"><section class="card-box"><h2>Items</h2><ul class="mini-lines">' +
-      o.items.map(function (i) { return '<li><span class="mini-art" aria-hidden="true">' + i.emoji + '</span><span class="mini-name">' + esc(i.name) + '<small>' + i.qty + ' × ' + esc(i.unit) + '</small></span><b class="num">' + money(i.price * i.qty) + '</b></li>'; }).join('') + '</ul></section>' +
+      o.items.map(function (i) { return '<li><span class="mini-art" aria-hidden="true">' + U.itemPic(i.id, i.emoji) + '</span><span class="mini-name">' + esc(i.name) + '<small>' + i.qty + ' × ' + esc(i.unit) + '</small></span><b class="num">' + money(i.price * i.qty) + '</b></li>'; }).join('') + '</ul></section>' +
       '<section class="card-box"><h2>Delivery</h2><dl class="kv"><dt>When</dt><dd>' + esc(o.slot) + '</dd><dt>Address</dt><dd>' + esc(o.address.building) + ', ' + esc(o.address.street) + ', ' + esc(o.address.area) + (o.address.landmark ? '<br><small>Near ' + esc(o.address.landmark) + '</small>' : '') + '</dd><dt>Contact</dt><dd>' + esc(o.customer.name) + ' · ' + esc(o.customer.phone) + '</dd><dt>Payment</dt><dd>' + esc(o.payment) + '</dd>' + (o.notes ? '<dt>Notes</dt><dd>' + esc(o.notes) + '</dd>' : '') + '</dl>' +
       '<div class="rows"><div class="row"><span>Subtotal</span><b class="num">' + money(t.subtotal) + '</b></div>' + (t.discount > 0 ? '<div class="row good"><span>Promo ' + esc(t.promo) + '</span><b class="num">−' + money(t.discount) + '</b></div>' : '') +
       '<div class="row"><span>Delivery</span><b class="num">' + (t.delivery ? money(t.delivery) : '<span class="free">Free</span>') + '</b></div>' + (t.express ? '<div class="row"><span>Express</span><b class="num">' + money(t.express) + '</b></div>' : '') +
@@ -219,6 +219,8 @@
       return '<li class="' + (i < stage ? 'done' : i === stage ? 'now' : '') + '"' + (i === stage ? ' aria-current="step"' : '') + '><span class="dot">' + (i < stage || stage === 3 ? icon('check') : i + 1) + '</span><b>' + s[0] + '</b><small>' + s[1] + '</small></li>';
     }).join('') + '</ol>';
   }
+
+  V.cartParts.tracker = tracker; V.cartParts.orderBody = orderBody; V.cartParts.stageOf = stageOf; V.cartParts.STAGES = STAGES;
 
   V.order = function (id) {
     var o = S.order(id);
@@ -245,7 +247,7 @@
     var html = '<div class="container narrow"><h1 class="page-title">My orders</h1>' + (list.length ? '<ul class="orders">' + list.map(function (o) {
       var st = stageOf(o), n = o.items.reduce(function (a, i) { return a + i.qty; }, 0);
       return '<li class="card-box order-row"><div class="or-top"><div><b>#' + esc(o.id) + '</b><small>' + U.ago(o.ts) + ' · ' + n + ' item' + (n === 1 ? '' : 's') + '</small></div><span class="status s' + st + '">' + STAGES[st][0] + '</span></div>' +
-        '<div class="or-emojis" aria-hidden="true">' + o.items.slice(0, 8).map(function (i) { return '<span>' + i.emoji + '</span>'; }).join('') + (o.items.length > 8 ? '<span class="more">+' + (o.items.length - 8) + '</span>' : '') + '</div>' +
+        '<div class="or-thumbs" aria-hidden="true">' + o.items.slice(0, 8).map(function (i) { return '<span>' + U.itemPic(i.id, i.emoji) + '</span>'; }).join('') + (o.items.length > 8 ? '<span class="more">+' + (o.items.length - 8) + '</span>' : '') + '</div>' +
         '<div class="or-bot"><b class="num">' + money(o.totals.total) + '</b><div><button type="button" class="btn btn-outline btn-sm" data-reorder="' + esc(o.id) + '">' + icon('refresh') + ' Reorder</button> <a class="btn btn-primary btn-sm" href="#/order/' + esc(o.id) + '">View</a></div></div></li>';
     }).join('') + '</ul>' : '<div class="empty tall"><div class="empty-ico" aria-hidden="true">📦</div><h2>No orders yet</h2><p>When you place an order it will show up here, ready to reorder in one tap.</p><div class="empty-actions"><a class="btn btn-primary btn-lg" href="#/shop">Start shopping</a></div></div>') + '</div>';
     return {
@@ -281,29 +283,45 @@
 
   /* ================= ACCOUNT ================= */
   V.account = function () {
-    var u = S.state.user, a = S.state.addr, theme = S.state.theme, pal = S.state.palette || 'ocean';
-    var prefs = '<section class="card-box"><h2>Preferences</h2><div class="pref"><span>Appearance</span><div class="seg" role="group" aria-label="Theme">' +
-      [['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(function (x) { return '<button type="button" data-theme-set="' + x[0] + '" aria-pressed="' + (theme === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
+    var u = S.state.user, theme = S.state.theme, pal = S.state.palette || 'ocean', lang = S.state.lang || 'en';
+    var tiles = [
+      ['orders', 'My Orders', '#/orders'], ['track', 'Track Order', '#/track'], ['profile', 'Profile', '#/profile'], ['address', 'Address', '#/address'],
+      ['headset', 'Customer Support', '#/support'], ['ticket', 'Coupon', '#/coupons'], ['bell', 'Notification', '#/notifications'], ['mail', 'Contact Us', '#/contact'],
+      ['policy', 'Privacy Policy', '#/privacy'], ['terms', 'Terms &amp; Conditions', '#/terms'], ['info', 'About Us', '#/about'],
+      u ? ['logout', 'Logout', '', 'logout'] : ['login', 'Login', '', 'login']
+    ];
+    var grid = '<nav class="acct-tiles" aria-label="Account">' + tiles.map(function (t) {
+      var inner = '<span class="at-ico">' + icon(t[0]) + '</span><span class="at-label">' + t[1] + '</span>';
+      return t[3] ? '<button type="button" class="acct-tile" data-action="' + t[3] + '">' + inner + '</button>' : '<a class="acct-tile" href="' + t[2] + '">' + inner + '</a>';
+    }).join('') + '</nav>';
+    var hero = '<section class="acct-hero"><div class="ah-banner" aria-hidden="true"></div><div class="ah-body"><span class="avatar big" aria-hidden="true">' + (u ? esc(u.name.charAt(0).toUpperCase()) : icon('user')) + '</span>' +
+      '<div><h1>' + (u ? esc(u.name) : 'Guest') + '</h1><p>' + (u ? esc(u.contact) : 'Sign in to check out faster and keep your orders together.') + '</p></div></div></section>';
+    var seg = function (attr, label, list, cur) {
+      return '<div class="seg" role="group" aria-label="' + label + '">' + list.map(function (x) { return '<button type="button" ' + attr + '="' + x[0] + '" aria-pressed="' + (cur === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    };
+    var prefs = '<section class="card-box"><h2>Preferences</h2>' +
+      '<div class="pref"><span>Appearance</span>' + seg('data-theme-set', 'Theme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Match device']], theme) + '</div>' +
+      '<div class="pref"><span>Language</span><div class="seg" role="group" aria-label="Language" translate="no">' + (window.I18N ? window.I18N.langs : []).map(function (l) {
+        return '<button type="button" data-lang-set="' + l.id + '" aria-pressed="' + (lang === l.id) + '">' + l.name + '</button>';
+      }).join('') + '</div></div>' +
       (C.paletteSwitcher ? '<div class="pref"><span>Colour theme</span><div class="swatches" role="radiogroup" aria-label="Colour theme">' + C.palettes.map(function (x) {
         return '<button type="button" role="radio" aria-checked="' + (pal === x.id) + '" data-palette-set="' + x.id + '" style="--sw:' + x.color + '" aria-label="' + esc(x.name) + '" title="' + esc(x.name) + '"></button>';
       }).join('') + '</div></div>' : '') +
-      '<div class="pref"><span>Delivery city</span><select id="pref-area" aria-label="Delivery city">' + C.areas.map(function (x) { return '<option' + (x === (S.state.area || C.areas[0]) ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div></section>';
-    var html;
-    if (!u) {
-      html = '<div class="container narrow"><h1 class="page-title">My account</h1><div class="card-box signin-card"><div class="empty-ico" aria-hidden="true">👋</div><h2>Welcome to ' + esc(C.name) + '</h2><p>Sign in to check out faster and keep your orders together. This demo stores your details on this device only.</p><button type="button" class="btn btn-primary btn-lg" data-action="login">Sign in or create account</button></div>' + prefs + '</div>';
-    } else {
-      html = '<div class="container narrow"><h1 class="page-title">My account</h1><div class="card-box profile"><span class="avatar big" aria-hidden="true">' + esc(u.name.charAt(0).toUpperCase()) + '</span><div><h2>' + esc(u.name) + '</h2><p>' + esc(u.contact) + '</p></div><button type="button" class="btn btn-outline" data-action="logout">' + icon('logout') + ' Sign out</button></div>' +
-        '<div class="quick"><a class="card-box q" href="#/orders">' + icon('box') + '<b>My orders</b><small>' + S.state.orders.length + ' placed</small></a><a class="card-box q" href="#/wishlist">' + icon('heart') + '<b>Wishlist</b><small>' + S.state.wish.length + ' saved</small></a></div>' +
-        '<section class="card-box"><h2>Saved address</h2>' + (a ? '<p>' + esc(a.building) + ', ' + esc(a.street) + ', ' + esc(a.area) + '<br><small>' + esc(a.name) + ' · ' + esc(a.phone) + '</small></p>' : '<p>No address saved yet. It will be remembered after your first order.</p>') + '</section>' + prefs + '</div>';
-    }
+      '<div class="pref"><span>Delivery city</span><select id="pref-area" aria-label="Delivery city">' + C.areas.map(function (x) { return '<option value="' + esc(x) + '"' + (x === (S.state.area || C.areas[0]) ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div></section>';
     return {
-      title: 'My account', html: html,
+      title: 'My account', html: '<div class="container narrow">' + hero + grid + prefs + '</div>',
       mount: function (root) {
         root.addEventListener('click', function (e) {
           var sw = e.target.closest('[data-palette-set]');
           if (sw) {
             S.setPalette(sw.dataset.paletteSet);
             $$('[data-palette-set]', root).forEach(function (x) { x.setAttribute('aria-checked', x === sw); });
+            return;
+          }
+          var lb = e.target.closest('[data-lang-set]');
+          if (lb) {
+            window.I18N.choose(lb.dataset.langSet);
+            $$('[data-lang-set]', root).forEach(function (x) { x.setAttribute('aria-pressed', x === lb); });
             return;
           }
           var b = e.target.closest('[data-theme-set]'); if (!b) return;
