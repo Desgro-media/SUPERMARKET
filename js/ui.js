@@ -36,6 +36,8 @@
     moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
     share: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>',
+    ishare: '<path d="M12 3v12M8 7l4-4 4 4M8 10H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1"/>',   // iOS Share: box with an up arrow
+    addhome: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',                          // iOS "Add to Home Screen": plus in a rounded square
     check: '<path d="m5 12 5 5 9-10"/>',
     filter: '<path d="M4 6h16M7 12h10M10 18h4"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',

@@ -47,7 +47,7 @@ Try them at **Account → Preferences → Colour theme**. Once you've settled on
 
 ## Install as an app (PWA)
 
-The header has an **Install app** button (icon-only on phones). On Chrome/Edge/Android it opens the browser's one-tap install dialog; on iPhone/iPad Safari and other browsers it opens a short how-to sheet. Once installed it opens full-screen from the home screen, works offline, and has shortcuts for Deals, Cart and Orders. The button disappears inside the installed app.
+The header has an **Install app** button (icon-only on phones). On Chrome/Edge/Android it opens the browser's one-tap install dialog. Apple gives web pages no install API, so on iPhone/iPad the button is relabelled **Add to Home Screen** and opens a short how-to sheet (with a "open this in Safari" hint inside Chrome/Firefox/in-app browsers); other browsers get the same kind of sheet. Once installed it opens full-screen from the home screen, works offline, and has shortcuts for Deals, Cart and Orders. The button disappears inside the installed app.
 
 Installing requires a secure origin: `https://…` or `localhost`. To try it on a real phone, deploy the folder to any HTTPS static host (Netlify, GitHub Pages, Vercel, Cloudflare Pages) or use Chrome's remote-debugging port forwarding to your PC's `localhost`. A plain `http://192.168.x.x` address works for viewing, but browsers won't offer install there.
 

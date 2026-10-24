@@ -2,7 +2,7 @@
    Strategy: network-first for the app's own files (always fresh when online, so edits show up),
    falling back to the cache when offline (product photos are cached as they are viewed). Fonts are cache-first.
    Bump CACHE to force a clean slate. */
-var CACHE = 'nestmart-v5';
+var CACHE = 'nestmart-v6';
 var CORE = [
   './', 'index.html', 'manifest.json', 'css/styles.css',
   'js/config.js', 'js/data.js', 'js/store.js', 'js/lang.js', 'js/lang-data.js', 'js/i18n.js', 'js/ui.js', 'js/views-shop.js', 'js/views-cart.js', 'js/views-info.js', 'js/app.js', 'js/pwa.js',
@@ -21,6 +21,13 @@ self.addEventListener('activate', function (e) {
   );
 });
 
+/* Safari refuses a page load answered with a redirected response ("Response served by service worker has redirections"),
+   which happens on hosts that redirect /index.html to /. Hand it a plain copy instead. */
+function plain(res) {
+  if (!res.redirected) return res;
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+
 function put(req, res) {
   if (res && res.ok && (res.type === 'basic' || res.type === 'cors' || res.type === 'opaque')) {
     var copy = res.clone();
@@ -37,7 +44,7 @@ self.addEventListener('fetch', function (e) {
   if (url.origin === self.location.origin) {
     e.respondWith(
       fetch(req.mode === 'navigate' ? req.url : req, { cache: 'no-cache' })
-        .then(function (res) { return put(req, res); })
+        .then(function (res) { return put(req, plain(res)); })
         .catch(function () {
           return caches.match(req).then(function (hit) {
             return hit || (req.mode === 'navigate' ? caches.match('index.html') : Response.error());

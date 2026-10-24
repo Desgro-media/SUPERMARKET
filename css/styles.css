@@ -1591,7 +1591,7 @@ mark { background: color-mix(in srgb, var(--brand) 22%, transparent); color: inh
    Install app button + how-to sheet
    ========================================================================== */
 .install-btn { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 11px; margin-right: 4px; border-radius: 999px; background: var(--brand-50); color: var(--brand-600); font-weight: 800; font-size: 13.5px; border: 1.5px solid color-mix(in srgb, var(--brand) 28%, transparent); transition: background .15s, color .15s, transform .15s; white-space: nowrap; }
-.install-btn:hover { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+@media (hover: hover) { .install-btn:hover { background: var(--brand); color: var(--on-brand); border-color: var(--brand); } }   /* not on touch screens, where :hover sticks after a tap */
 .install-btn .ico { width: 18px; height: 18px; stroke-width: 2.2; }
 .install-btn.ready::after { content: ''; position: absolute; top: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); animation: pulse-dot 1.8s ease infinite; }
 @keyframes pulse-dot { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 0%, transparent); transform: scale(1.15); } }
